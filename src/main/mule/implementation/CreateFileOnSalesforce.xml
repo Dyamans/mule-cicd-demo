@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">	
+	
+	<flow name="salesforcecreateFlow" doc:id="fe7bea5a-64e3-404e-ae4e-aa5e5e49bd0f" >
+		<http:listener doc:name="Listener" doc:id="1864c7cb-a579-43ec-a1f0-4d1c6d37b629" path="/doc" config-ref="HTTP_Listener_config"/>
+		<file:read doc:id="d9dcc169-161f-4720-af68-10bb6170e155" path="/Users/renuka.patil/Downloads/0000jmrmm.pdf" doc:name="Read" />
+		<ee:transform doc:name="Transform Message" doc:id="d00e29f4-2ec5-4349-882d-85e17d908da2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output application/java
+---
+[{
+	Title: "SampleTest",
+	PathOnClient : "Sample.pdf",
+	VersionData: toBase64(payload)
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="76b5fc64-4072-4917-8874-c3bad3cdc91c" type="ContentVersion" config-ref="Salesforce_Config">
+		</salesforce:create>
+		<logger level="INFO" doc:name="Logger" doc:id="3ba78cc8-11df-464c-936f-8a5dca26f0fd" message="#[payload]"/>
+	</flow>
+</mule>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd"> 
+
+	<flow name="salesforce-batch" doc:id="7f9583da-3032-451b-9641-6bf577e2f3c8" >
+ 
+	<scheduler doc:name="Scheduler" doc:id="5d77b29f-b1bc-4bd2-b8e0-9660564524f6" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="5" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="salesforce upsert request" doc:id="8519aac4-556a-49a5-a791-606ce68bb5e5" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="sfUpsertReq" ><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	Name: "Varun Goel", 
+	AccountNumber: "CD000001",
+	BillingCity: "New Delhi",
+	BillingCountry: "India",
+	BillingState: "Delhi",
+	BillingStreet: "Chola Batura Street",
+	CleanStatus: "Pending",
+	Industry: "Food",
+	NumberOfEmployees: "7",
+	Website: "https://www.tutorialsatoz.com/",
+	External_ID_c__c: "EX_000001"
+},
+{
+	Name: "Rachit Goel", 
+	AccountNumber: "CD000002",
+	BillingCity: "New Delhi",
+	BillingCountry: "India",
+	BillingState: "Delhi",
+	BillingStreet: "Panner Tikka Street",
+	CleanStatus: "Pending",
+	Industry: "Food",
+	NumberOfEmployees: "3",
+	Website: "https://www.rachit.tutorialsatoz.com/",
+	External_ID_c__c: "EX_000002"
+},
+{
+	Name: "Mishika Goel", 
+	AccountNumber: "CD000003",
+	BillingCity: "New Delhi",
+	BillingCountry: "India",
+	BillingState: "Delhi",
+	BillingStreet: "Gubal Jamun Street",
+	CleanStatus: "Pending",
+	Industry: "Food",
+	NumberOfEmployees: "300",
+	Website: "https://www.mishika.tutorialsatoz.com/",
+	External_ID_c__c: "EX_000003"
+},
+{
+	Name: "Ankita Goel", 
+	AccountNumber: "CD000004",
+	BillingCity: "New Delhi",
+	BillingCountry: "India",
+	BillingState: "Agra",
+	BillingStreet: "Chocolate Biscuit Street",
+	CleanStatus: "Pending",
+	Industry: "Food",
+	NumberOfEmployees: "3",
+	Website: "https://www.ankita.tutorialsatoz.com/",
+	External_ID_c__c: "EX_000004"
+}
+]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		 
+		<ee:transform doc:name="create job request" doc:id="50631ca7-7a94-49cf-aa88-9636b5d4d5d0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    "externalIdFieldName": "External_ID_c__c",
+    "contentType" : "JSON",
+    "concurrencyMode": "Serial"  //Serial or Parallel
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create-job doc:name="Create job" doc:id="e11009f3-5539-4344-98ed-cfb87b8d0a26" operation="upsert" type="Account" config-ref="Salesforce_Config">
+			<salesforce:create-job-request ><![CDATA[#[payload]]]></salesforce:create-job-request>
+		</salesforce:create-job>
+		<logger level="INFO" doc:name="Log create job response" doc:id="24f34e65-91cc-4b01-99e3-e64334c588b5" message="#[%dw 2.0 output application/json --- payload]"/>
+		<set-variable value="#[payload]" doc:name="Save create job response" doc:id="d55229a9-e9eb-4fde-b756-2c8324d23559" variableName="createJobResp"/>
+		<foreach doc:name="For Each" doc:id="2d6c53be-c51e-4767-8075-6d4d98f55329" batchSize="2" collection="vars.sfUpsertReq">
+			<set-payload value="#[%dw 2.0
+output application/json
+---
+payload]" doc:name="Set Payload" doc:id="91fefa25-b059-4340-afa8-c5e45a2d51f0" />
+			<logger level="INFO" doc:name="log batch request" doc:id="d8e500c1-8bc8-468f-8b0e-293b8dfe29ed" message="#[payload]"/>
+ 	
+			<ee:transform doc:name="Transform Message" doc:id="76f5dff9-1275-41a5-86ad-f6c1e9edee0a" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="batchHeader" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	id : vars.createJobResp.id,
+	contentType: vars.createJobResp.contentType,
+	externalIdFieldName: vars.createJobResp.externalIdFieldName,
+	createdDate: now() as LocalDateTime {format: "yyyy-MM-dd'T'HH:mm:ss.SSSz"},
+	systemModstamp: now() as LocalDateTime {format: "yyyy-MM-dd'T'HH:mm:ss.SSSz"},
+	object: vars.createJobResp.object
+}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="832307f9-da3e-420e-a21c-4a5f254f7eea" message="#[vars.batchHeader]"/>
+			
+			<salesforce:create-batch doc:name="Create batch" doc:id="27791c3c-0086-4bce-9343-a8fc7b67e068" jobInfoBatch="#[vars.batchHeader]" config-ref="Salesforce_Config"/>
+			<logger level="INFO" doc:name="Log create batch response" doc:id="c96b5c10-2406-4ee7-8883-9bd0625aaad3" message="#[%dw 2.0 output application/json --- payload]"/>
+		</foreach>
+		<salesforce:close-job doc:name="Close job" doc:id="495e6ec1-7c34-414b-9743-5b62d147598e" jobId="#[vars.createJobResp.id]" config-ref="Salesforce_Config"/>
+		<logger level="INFO" doc:name="Log close job response" doc:id="974061b3-4c3a-4735-87bf-7ad45fa1054b" message="#[%dw 2.0 output application/json --- payload]"/>
+	</flow>
+	
+</mule>

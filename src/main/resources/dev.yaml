@@ -1,0 +1,8 @@
+http:
+  port: "8081"
+  path: "emp-profile"
+  
+sf:
+  user: "dgpats@gmail.com"
+  passwd: "Soba*124"
+  token: "2NkIFSaxsfdKQ6RvhJZayXZL2"

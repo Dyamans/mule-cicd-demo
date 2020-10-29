@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+    http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+    http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="salesforce-empFlow" doc:id="f41f1593-25e5-46e4-ad31-b90a6ae319ef" >
+		<http:listener doc:name="Listener" doc:id="0e5869bd-5db9-465e-96b7-021394bb175f" path="/${http.path}" allowedMethods="POST" config-ref="HTTP_Listener_config"/>
+		<ee:transform doc:name="Transform Message" doc:id="67414816-9b79-4b79-963f-c2d631ec32d5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+  payload map (item, index) -> {
+	Name: item.empName,
+	emp_phone__c: item.empPhone,
+	emp_email__c: item.empEmail,
+	emp_skills__c: item.empSkills
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:id="7db27d0f-f4eb-4c87-81b3-ecafa78a48d0" type="emp_profile__c" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="c2554400-916f-4c67-92f2-cc9396cce110" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

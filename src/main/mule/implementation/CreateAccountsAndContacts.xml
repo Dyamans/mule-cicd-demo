@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://www.mulesoft.org/schema/mule/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd">
+    <salesforce-composite:composite-config name="Salesforce_Composite_Salesforce_Composite"
+                                           doc:name="Salesforce Composite Salesforce Composite"
+                                           doc:id="56efe689-cef1-4773-a3a5-3be694f96549">
+        <salesforce-composite:oauth-user-pass-connection consumerKey="your-key" consumerSecret="your-secret"
+                                                         username="your-usename" password="your-password"
+                                                         securityToken="your-token"/>
+    </salesforce-composite:composite-config>
+	<flow name="CreateAccountsAndContacts" doc:id="d52092f0-0192-4846-85a9-f53179c6e200">
+		<http:listener doc:name="Listener" doc:id="cf84eccd-20b8-4e68-b52c-7f260c6af999" path="/*" config-ref="HTTP_Listener_config"/>
+		<ee:transform doc:name="Transform Message" doc:id="d3d26cef-1082-4449-9d50-5584551be00c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "sObjectTrees": {
+    "records": [
+      {
+        "Name": "ParentAccount1",
+        "attributes": {
+          "objectType": "Account",
+          "referenceId": "ref4"
+        },
+        "ChildAccounts": {
+          "records": [
+            {
+              "Name": "ChildAccount1",
+              "attributes": {
+                "objectType": "Account",
+                "referenceId": "ref5"
+              }
+            }
+          ]
+        },
+        "Contacts": {
+          "records": [
+            {
+              "LastName": "Contact1",
+              "attributes": {
+                "objectType": "Contact",
+                "referenceId": "ref6"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "Name": "Account2",
+        "attributes": {
+          "objectType": "Account",
+          "referenceId": "ref1"
+        },
+        "Contacts": {
+          "records": [
+            {
+              "LastName": "Contact2",
+              "attributes": {
+                "objectType": "Contact",
+                "referenceId": "ref2"
+              }
+            },
+            {
+              "LastName": "Contact3",
+              "attributes": {
+                "objectType": "Contact",
+                "referenceId": "ref3"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform the http input for Create SObject Tree"
+                      doc:id="1c05fd08-52b9-48f8-bb8a-5a75ba2cf7fe">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload.sObjectTrees.records map ((record , indexOfRecord) -> {
+	"attributes": {
+		"type": record.attributes.objectType,
+		"referenceId": record.attributes.referenceId
+	},
+	"Name": record.Name,
+	("ChildAccounts": {
+		"records": record.ChildAccounts.records map ((record01 , indexOfRecord01) -> {
+			"attributes": {
+				"type": record01.attributes.objectType,
+				"referenceId": record01.attributes.referenceId
+			},
+			"Name": record01.Name
+		})
+	}),
+	"Contacts": {
+		"records": record.Contacts.records map ((record01 , indexOfRecord01) -> {
+			"attributes": {
+				"type": record01.attributes.objectType,
+				"referenceId": record01.attributes.referenceId
+			},
+			"LastName": record01.LastName
+		})
+	}
+})
+]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<salesforce-composite:create-sobject-tree doc:name="Create sobject tree"
+                                                  doc:id="dce8f909-b959-4657-a7b4-8fc36b3502b9"
+                                                  config-ref="Salesforce_Composite_Salesforce_Composite"
+                                                  type="Account">
+		</salesforce-composite:create-sobject-tree>
+    </flow>
+</mule>

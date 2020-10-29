@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<flow name="upsert" doc:id="b70a6055-8130-4a2e-a2cf-199a83e7d86e" >
+		<http:listener doc:name="Listener" doc:id="f6848dac-9cbc-4b7c-8ae8-d20c8f54a08d" path="/upsert" config-ref="HTTP_Listener_config"/>
+		<ee:transform doc:name="Transform Message" doc:id="acbc26ad-4b77-4c4d-ab29-dc5e2685d4bf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+  Id: payload.Id,
+  Ex_Account_Key__c: payload.Ex_Account_Key__c,
+  Name: payload.Name,
+  NumberOfEmployees: payload.NumberOfEmployees
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert type="Account" doc:name="Upsert" doc:id="54421550-ca61-4099-bf79-fddd602a875d" externalIdFieldName="Ex_Account_Key__c" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="31a93d48-7d08-4ff6-95b4-9472cbfb9009" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map {
+  id:$.id,
+  errors:$.errors,
+  success:$.success
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+  
+</mule>
