@@ -28,12 +28,13 @@
 				  <cloudHubDeployment>
 		            <uri>https://anypoint.mulesoft.com</uri>
 		            <muleVersion>4.2.2</muleVersion>
-		            <username>patsdg4</username>
-		            <password>Havalagi@01</password>
-		            <applicationName>mulesoft-cicd-demo</applicationName>
+		            <username>${username}</username>
+		            <password>${password}</password>
+		            <applicationName>${project.artifactId}</applicationName>
 		            <environment>Sandbox</environment>
-		            <workerType>MICRO</workerType>
-		            <objectStoreV2>true</objectStoreV2>
+		            <workerType>${workerType}</workerType>
+		            <workers>1</workers>
+		            <objectStoreV2>true</objectStoreV2>		            
        			 </cloudHubDeployment>
   				  <classifier>mule-application</classifier>
 				</configuration>
