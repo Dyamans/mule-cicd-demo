@@ -27,7 +27,7 @@
 				<configuration>
 				  <cloudHubDeployment>
 		            <uri>https://anypoint.mulesoft.com</uri>
-		            <muleVersion>4.2.2</muleVersion>
+		            <muleVersion>4.3.0</muleVersion>
 		            <username>${username}</username>
 		            <password>${password}</password>
 		            <applicationName>${project.artifactId}</applicationName>
@@ -38,6 +38,15 @@
        			 </cloudHubDeployment>
   				  <classifier>mule-application</classifier>
 				</configuration>
+				<executions>
+				   <execution>
+				      <id>deploy</id>
+				      <phase>deploy</phase>
+				      <goals>
+				          <goal>deploy</goal>
+				      </goals>
+				   </execution>
+				</executions>
 			</plugin>
 			<!-- maven deploy plugin, maven jar plugin, maven war plugin -->
 		</plugins>
