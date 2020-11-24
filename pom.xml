@@ -4,18 +4,16 @@
 
 	<groupId>com.mycompany</groupId>
 	<artifactId>salesforce-emp</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <packaging>mule-application</packaging>
-
+    	<version>1.0.0-SNAPSHOT</version>
+    	<packaging>mule-application</packaging>
 	<name>mule-cicd-demo</name>
 
     <properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-		<app.runtime>4.3.0</app.runtime>
-		<mule.maven.plugin.version>3.3.5</mule.maven.plugin.version>
-	</properties>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	<app.runtime>4.3.0</app.runtime>
+	<mule.maven.plugin.version>3.3.5</mule.maven.plugin.version>
+    </properties>
 
 	<build>
 		<plugins>
@@ -26,16 +24,16 @@
 				<extensions>true</extensions>
 				<configuration>
 				  <cloudHubDeployment>
-		            <uri>https://anypoint.mulesoft.com</uri>
-		            <muleVersion>4.3.0</muleVersion>
-		            <username>${username}</username>
-		            <password>${password}</password>
-		            <applicationName>${project.artifactId}</applicationName>
-		            <environment>Sandbox</environment>
-		            <workerType>${workerType}</workerType>
-		            <workers>1</workers>
-		            <objectStoreV2>true</objectStoreV2>		            
-       			 </cloudHubDeployment>
+				    <uri>https://anypoint.mulesoft.com</uri>
+				    <muleVersion>4.3.0</muleVersion>
+				    <username>patsdg4</username>
+				    <password>Havalagi@01</password>
+				    <applicationName>${project.name}</applicationName>
+				    <environment>Sandbox</environment>				  
+				    <workerType>Micro</workerType>
+				    <workers>1</workers>
+				    <objectStoreV2>true</objectStoreV2>		            
+				 </cloudHubDeployment>
   				  <classifier>mule-application</classifier>
 				</configuration>
 				<executions>
